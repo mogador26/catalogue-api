@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+  title: Référentiel géographique
+  version: 1.12.0
+  description: |
+    Communes, départements et régions, avec leur historique de fusion, de
+    scission et de changement de nom.
+
+    API ouverte, sans jeton ni quota. Les réponses sont mises en cache une
+    heure et versionnées par millésime, afin qu'un traitement rejoué sur des
+    données anciennes retrouve le découpage en vigueur à l'époque.
+  contact:
+    name: Pôle données de référence
+    email: api-geo@exemple.gouv.fr
+  license:
+    name: Licence Ouverte 2.0
+    url: https://www.etalab.gouv.fr/licence-ouverte-open-licence
+servers:
+  - url: https://geo.exemple.gouv.fr/api/v1
+tags:
+  - name: Communes
+  - name: Territoires
+paths:
+  /communes:
+    get:
+      tags: [Communes]
+      summary: Rechercher des communes
+      operationId: rechercherCommunes
+      parameters:
+        - name: nom
+          in: query
+          schema: { type: string, example: Hauteville }
+        - name: codePostal
+          in: query
+          schema: { type: string, example: "01110" }
+        - name: departement
+          in: query
+          schema: { type: string, example: "01" }
+        - name: millesime
+          in: query
+          description: Millésime du découpage territorial. Par défaut, le millésime courant.
+          schema: { type: integer, example: 2026 }
+      responses:
+        "200":
+          description: Communes correspondantes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Commune"
+  /communes/{code}:
+    get:
+      tags: [Communes]
+      summary: Consulter une commune
+      operationId: lireCommune
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Code INSEE de la commune.
+          schema: { type: string, example: "01185" }
+      responses:
+        "200":
+          description: Fiche de la commune, historique compris.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Commune"
+        "404": { description: Code INSEE inconnu pour ce millésime. }
+  /departements:
+    get:
+      tags: [Territoires]
+      summary: Lister les départements
+      operationId: listerDepartements
+      responses:
+        "200":
+          description: Départements et région de rattachement.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code: { type: string, example: "01" }
+                    nom: { type: string, example: Ain }
+                    region: { type: string, example: Auvergne-Rhône-Alpes }
+components:
+  schemas:
+    Commune:
+      type: object
+      properties:
+        code: { type: string, example: "01185" }
+        nom: { type: string, example: Hauteville-Lompnes }
+        codesPostaux:
+          type: array
+          items: { type: string }
+        departement: { type: string, example: "01" }
+        region: { type: string, example: Auvergne-Rhône-Alpes }
+        population: { type: integer, example: 3800 }
+        centre:
+          type: object
+          properties:
+            latitude: { type: number, format: double }
+            longitude: { type: number, format: double }
+        historique:
+          type: array
+          description: Fusions, scissions et changements de nom connus.
+          items:
+            type: object
+            properties:
+              date: { type: string, format: date }
+              nature: { type: string, enum: [fusion, scission, renommage] }
+              detail: { type: string }

@@ -1,0 +1,3 @@
+# Catalogue des API — dépendances de construction du site.
+mkdocs==1.6.1
+mkdocs-dsfr==0.26.1

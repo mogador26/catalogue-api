@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: Subventions et concours financiers
+  version: 1.4.0
+  description: |
+    Suivi des demandes de subvention déposées auprès des services de l'État :
+    dépôt, instruction, décision et versements.
+
+    L'accès demande une clé d'API délivrée à l'organisme instructeur ou à
+    l'éditeur du logiciel de gestion. Les montants sont exprimés en euros.
+  contact:
+    name: Direction des affaires financières — pôle subventions
+    email: api-subventions@exemple.gouv.fr
+servers:
+  - url: https://subventions.exemple.gouv.fr/api/v1
+security:
+  - cleApi: []
+tags:
+  - name: Demandes
+paths:
+  /subventions:
+    get:
+      tags: [Demandes]
+      summary: Lister les demandes de subvention
+      operationId: listerSubventions
+      parameters:
+        - name: exercice
+          in: query
+          schema: { type: integer, example: 2026 }
+        - name: statut
+          in: query
+          schema:
+            $ref: "#/components/schemas/StatutDemande"
+        - name: beneficiaireSiret
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Demandes correspondantes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultats:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Demande"
+                  total: { type: integer }
+    post:
+      tags: [Demandes]
+      summary: Déposer une demande
+      operationId: deposerSubvention
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemandeEnEntree"
+      responses:
+        "201":
+          description: Demande enregistrée, accusé de réception horodaté.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Demande"
+        "400": { description: Dossier incomplet ou montant incohérent. }
+  /subventions/{numero}:
+    get:
+      tags: [Demandes]
+      summary: Suivre une demande
+      operationId: lireSubvention
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          schema: { type: string, example: SUB-2026-004512 }
+      responses:
+        "200":
+          description: État de la demande et versements associés.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Demande"
+        "404": { description: Demande inconnue. }
+components:
+  schemas:
+    StatutDemande:
+      type: string
+      enum: [deposee, en-instruction, complement-demande, accordee, refusee, soldee]
+    Demande:
+      type: object
+      properties:
+        numero: { type: string }
+        exercice: { type: integer }
+        beneficiaireSiret: { type: string }
+        objet: { type: string }
+        montantDemande: { type: number, format: double }
+        montantAccorde: { type: number, format: double, nullable: true }
+        statut:
+          $ref: "#/components/schemas/StatutDemande"
+        deposeeLe: { type: string, format: date-time }
+        versements:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string, format: date }
+              montant: { type: number, format: double }
+    DemandeEnEntree:
+      type: object
+      required: [exercice, beneficiaireSiret, objet, montantDemande]
+      properties:
+        exercice: { type: integer }
+        beneficiaireSiret: { type: string }
+        objet: { type: string, maxLength: 500 }
+        montantDemande: { type: number, format: double, minimum: 0 }
+  securitySchemes:
+    cleApi:
+      type: apiKey
+      in: header
+      name: X-API-Key

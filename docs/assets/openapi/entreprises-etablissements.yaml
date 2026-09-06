@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: Entreprises et établissements
+  version: 2.6.1
+  description: |
+    Identité légale des entreprises et de leurs établissements : dénomination,
+    forme juridique, activité principale, adresse et état administratif.
+
+    L'accès demande une clé d'API nominative, transmise dans l'en-tête
+    `X-API-Key`. La clé sert au suivi de volumétrie et au contact en cas
+    d'évolution incompatible ; elle n'ouvre aucun droit particulier sur les
+    données, qui sont publiques.
+  contact:
+    name: Pôle données économiques
+    email: api-entreprises@exemple.gouv.fr
+servers:
+  - url: https://entreprises.exemple.gouv.fr/api/v2
+security:
+  - cleApi: []
+tags:
+  - name: Entreprises
+  - name: Établissements
+paths:
+  /entreprises/{siren}:
+    get:
+      tags: [Entreprises]
+      summary: Consulter une entreprise
+      operationId: lireEntreprise
+      parameters:
+        - name: siren
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[0-9]{9}$" }
+          example: "130025265"
+      responses:
+        "200":
+          description: Identité de l'entreprise.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entreprise"
+        "404": { description: SIREN inconnu. }
+        "429": { description: Quota dépassé pour cette clé. }
+  /etablissements/{siret}:
+    get:
+      tags: [Établissements]
+      summary: Consulter un établissement
+      operationId: lireEtablissement
+      parameters:
+        - name: siret
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[0-9]{14}$" }
+      responses:
+        "200":
+          description: Identité de l'établissement.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Etablissement"
+  /entreprises:
+    get:
+      tags: [Entreprises]
+      summary: Rechercher une entreprise
+      operationId: rechercherEntreprises
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: codeNaf
+          in: query
+          schema: { type: string, example: "62.01Z" }
+        - name: departement
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Entreprises correspondantes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultats:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Entreprise"
+                  total: { type: integer }
+components:
+  schemas:
+    Entreprise:
+      type: object
+      properties:
+        siren: { type: string }
+        denomination: { type: string }
+        formeJuridique: { type: string, example: SAS }
+        codeNaf: { type: string, example: "62.01Z" }
+        dateCreation: { type: string, format: date }
+        etat:
+          type: string
+          enum: [active, cessee]
+        siegeSocial:
+          $ref: "#/components/schemas/Etablissement"
+    Etablissement:
+      type: object
+      properties:
+        siret: { type: string }
+        enseigne: { type: string, nullable: true }
+        adresse: { type: string }
+        codePostal: { type: string }
+        commune: { type: string }
+        etat:
+          type: string
+          enum: [ouvert, ferme]
+  securitySchemes:
+    cleApi:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Clé nominative obtenue auprès du producteur.

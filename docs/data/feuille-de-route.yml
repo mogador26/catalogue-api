@@ -1,0 +1,89 @@
+---
+# Feuille de route du catalogue.
+# Source unique : ce fichier alimente la page « Feuille de route », l'extrait
+# affiché sur la page d'accueil et l'export catalogue.json.
+#
+# etape : etude | prevu | en-cours | livre
+# acces : ouverte | api-key | oauth2 | mtls
+
+jalons:
+  - echeance: "T4 2026"
+    api: "Référentiel des applications — webhooks"
+    theme: "Référentiel"
+    acces: oauth2
+    etape: en-cours
+    description: >-
+      Notification sortante à chaque changement d'état d'une application, pour
+      supprimer les scrutations horaires des outils de supervision.
+
+  - echeance: "T4 2026"
+    api: "Contrôle technique des véhicules"
+    theme: "Transport"
+    acces: oauth2
+    etape: en-cours
+    description: >-
+      Consultation du dernier procès-verbal de contrôle technique par numéro
+      d'immatriculation, pour les forces de l'ordre et les assureurs habilités.
+
+  - echeance: "T1 2027"
+    api: "Déclaration de détention d'armes"
+    theme: "Armes"
+    acces: oauth2
+    etape: prevu
+    description: >-
+      Écriture dans le SIA depuis les logiciels métier des armuriers, en
+      complément de la consultation déjà ouverte.
+
+  - echeance: "T1 2027"
+    api: "Subventions — pièces justificatives"
+    theme: "Finances"
+    acces: api-key
+    etape: prevu
+    description: >-
+      Dépôt et suivi des pièces justificatives d'une demande de subvention,
+      avec accusé de réception horodaté.
+
+  - echeance: "T2 2027"
+    api: "Annuaire des services de l'État"
+    theme: "Référentiel"
+    acces: ouverte
+    etape: prevu
+    description: >-
+      Coordonnées et compétences territoriales des services déconcentrés,
+      alignées sur le référentiel des structures.
+
+  - echeance: "T2 2027"
+    api: "Statistiques d'usage du catalogue"
+    theme: "Technique"
+    acces: api-key
+    etape: etude
+    description: >-
+      Volumétrie, latence et taux d'erreur par API et par consommateur, pour
+      outiller le pilotage des producteurs.
+
+  - echeance: "T3 2027"
+    api: "Titres de séjour — vérification"
+    theme: "Référentiel"
+    acces: mtls
+    etape: etude
+    description: >-
+      Vérification de la validité d'un titre pour les organismes habilités,
+      sous réserve de l'avis de la CNIL et du cadrage juridique.
+
+  - echeance: "T2 2026"
+    api: "Notifications transactionnelles"
+    theme: "Technique"
+    acces: api-key
+    etape: livre
+    description: >-
+      Envoi de courriels et de SMS transactionnels mutualisé pour l'ensemble
+      des applications du ministère.
+
+  - echeance: "T1 2026"
+    api: "Référentiel géographique"
+    theme: "Territoires"
+    acces: ouverte
+    etape: livre
+    description: >-
+      Communes, départements et régions avec leur historique de fusion, en
+      accès libre et sans quota.

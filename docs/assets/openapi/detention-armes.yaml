@@ -1,0 +1,107 @@
+openapi: 3.0.3
+info:
+  title: Détention d'armes (SIA)
+  version: 2.1.0
+  description: |
+    Consultation du système d'information sur les armes : râtelier numérique
+    d'un détenteur, statut d'une arme et validité d'une autorisation.
+
+    L'API sert les armuriers, les fédérations sportives et les services
+    instructeurs. Les données sont sensibles : l'habilitation est nominative et
+    limitée au périmètre du demandeur.
+  contact:
+    name: Service central des armes et explosifs — équipe SIA
+    email: api-sia@exemple.gouv.fr
+servers:
+  - url: https://sia.exemple.gouv.fr/api/v2
+security:
+  - oauth2: [sia:lecture]
+tags:
+  - name: Détenteurs
+  - name: Armes
+paths:
+  /detenteurs/{numeroSia}/armes:
+    get:
+      tags: [Détenteurs]
+      summary: Râtelier numérique d'un détenteur
+      operationId: listerArmesDetenteur
+      parameters:
+        - name: numeroSia
+          in: path
+          required: true
+          description: Identifiant SIA du détenteur.
+          schema: { type: string, example: "1234567890" }
+      responses:
+        "200":
+          description: Armes rattachées au détenteur.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Arme"
+        "404": { description: Détenteur inconnu. }
+  /armes/{numeroSerie}:
+    get:
+      tags: [Armes]
+      summary: Statut d'une arme
+      operationId: lireArme
+      parameters:
+        - name: numeroSerie
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Description et statut de l'arme.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Arme"
+  /autorisations/{numero}/validite:
+    get:
+      tags: [Détenteurs]
+      summary: Vérifier la validité d'une autorisation
+      description: |
+        Réponse binaire, sans détail sur le motif d'invalidité : le contrôle
+        d'un armurier n'a pas à connaître la situation personnelle du détenteur.
+      operationId: verifierAutorisation
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Validité de l'autorisation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valide: { type: boolean }
+                  echeance: { type: string, format: date, nullable: true }
+components:
+  schemas:
+    Arme:
+      type: object
+      properties:
+        numeroSerie: { type: string }
+        categorie:
+          type: string
+          description: Catégorie réglementaire de classement.
+          enum: [A1, A2, B, C, D]
+        typeArme: { type: string, example: carabine }
+        marque: { type: string }
+        statut:
+          type: string
+          enum: [detenue, cedee, neutralisee, detruite, perdue, volee]
+        dateAcquisition: { type: string, format: date }
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.exemple.gouv.fr/realms/partenaires/protocol/openid-connect/token
+          scopes:
+            sia:lecture: Consultation du périmètre habilité.

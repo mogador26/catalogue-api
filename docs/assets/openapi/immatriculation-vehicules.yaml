@@ -1,0 +1,97 @@
+openapi: 3.0.3
+info:
+  title: Immatriculation des véhicules
+  version: 3.4.0
+  description: |
+    Consultation des données d'immatriculation d'un véhicule : caractéristiques
+    techniques, situation administrative et historique des certificats.
+
+    L'accès est réservé aux organismes habilités par arrêté. Chaque appel est
+    journalisé et rattaché à l'habilitation du client appelant.
+  contact:
+    name: Bureau des titres — équipe immatriculation
+    email: api-immatriculation@exemple.gouv.fr
+servers:
+  - url: https://immatriculation.exemple.gouv.fr/api/v3
+    description: Production
+  - url: https://immatriculation.recette.exemple.gouv.fr/api/v3
+    description: Recette — véhicules fictifs
+security:
+  - oauth2: [immatriculation:lecture]
+tags:
+  - name: Véhicules
+paths:
+  /vehicules/{immatriculation}:
+    get:
+      tags: [Véhicules]
+      summary: Consulter un véhicule
+      operationId: lireVehicule
+      parameters:
+        - name: immatriculation
+          in: path
+          required: true
+          description: Numéro au format SIV (AA-123-AA) ou FNI.
+          schema: { type: string, pattern: "^[A-Z]{2}-[0-9]{3}-[A-Z]{2}$" }
+          example: AB-123-CD
+      responses:
+        "200":
+          description: Situation du véhicule.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicule"
+        "404": { description: Aucun véhicule connu sous ce numéro. }
+        "403": { description: Habilitation insuffisante pour ce périmètre. }
+  /vehicules/{immatriculation}/historique:
+    get:
+      tags: [Véhicules]
+      summary: Historique des certificats d'immatriculation
+      operationId: lireHistoriqueVehicule
+      parameters:
+        - name: immatriculation
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Certificats successifs, du plus récent au plus ancien.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Certificat"
+components:
+  schemas:
+    Vehicule:
+      type: object
+      properties:
+        immatriculation: { type: string, example: AB-123-CD }
+        marque: { type: string, example: RENAULT }
+        modele: { type: string, example: CLIO V }
+        energie:
+          type: string
+          enum: [essence, gazole, electrique, hybride, gpl, hydrogene]
+        puissanceFiscale: { type: integer, example: 5 }
+        premiereImmatriculation: { type: string, format: date }
+        situation:
+          type: string
+          description: Situation administrative courante du véhicule.
+          enum: [normale, gage, opposition, vole, detruit]
+        crit_air: { type: integer, nullable: true, minimum: 0, maximum: 5 }
+    Certificat:
+      type: object
+      properties:
+        numeroFormule: { type: string, example: "2019AB12345" }
+        dateEmission: { type: string, format: date }
+        motif:
+          type: string
+          enum: [premiere-immatriculation, changement-titulaire, changement-adresse, duplicata]
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.exemple.gouv.fr/realms/partenaires/protocol/openid-connect/token
+          scopes:
+            immatriculation:lecture: Consultation des véhicules du périmètre habilité.

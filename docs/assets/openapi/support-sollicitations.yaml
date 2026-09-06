@@ -1,0 +1,119 @@
+openapi: 3.0.3
+info:
+  title: Sollicitations de support
+  version: 4.2.0
+  description: |
+    Création et suivi des sollicitations adressées au centre de services : les
+    applications métier peuvent ouvrir un ticket sans que l'agent quitte son
+    outil de travail.
+
+    L'API est réservée aux applications internes, authentifiées en OAuth 2.0.
+  contact:
+    name: Centre de services numériques
+    email: api-support@exemple.gouv.fr
+servers:
+  - url: https://support.exemple.gouv.fr/api/v4
+security:
+  - oauth2: [support:ecriture]
+tags:
+  - name: Sollicitations
+paths:
+  /sollicitations:
+    post:
+      tags: [Sollicitations]
+      summary: Ouvrir une sollicitation
+      operationId: creerSollicitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SollicitationEnEntree"
+      responses:
+        "201":
+          description: Sollicitation créée.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sollicitation"
+    get:
+      tags: [Sollicitations]
+      summary: Lister les sollicitations d'une application
+      operationId: listerSollicitations
+      parameters:
+        - name: application
+          in: query
+          required: true
+          schema: { type: string, example: REFAPP }
+        - name: statut
+          in: query
+          schema:
+            $ref: "#/components/schemas/StatutSollicitation"
+      responses:
+        "200":
+          description: Sollicitations correspondantes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sollicitation"
+  /sollicitations/{numero}:
+    get:
+      tags: [Sollicitations]
+      summary: Suivre une sollicitation
+      operationId: lireSollicitation
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          schema: { type: string, example: INC0045128 }
+      responses:
+        "200":
+          description: État courant et échanges associés.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sollicitation"
+components:
+  schemas:
+    StatutSollicitation:
+      type: string
+      enum: [nouvelle, prise-en-charge, en-attente-usager, resolue, close]
+    Sollicitation:
+      type: object
+      properties:
+        numero: { type: string }
+        application: { type: string }
+        objet: { type: string }
+        priorite:
+          type: string
+          enum: [basse, normale, haute, critique]
+        statut:
+          $ref: "#/components/schemas/StatutSollicitation"
+        ouverteLe: { type: string, format: date-time }
+        echeanceEngagement: { type: string, format: date-time }
+    SollicitationEnEntree:
+      type: object
+      required: [application, objet, description, demandeur]
+      properties:
+        application: { type: string }
+        objet: { type: string, maxLength: 200 }
+        description: { type: string }
+        priorite:
+          type: string
+          enum: [basse, normale, haute, critique]
+          default: normale
+        demandeur:
+          type: object
+          properties:
+            courriel: { type: string, format: email }
+            telephone: { type: string, nullable: true }
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.exemple.gouv.fr/realms/agents/protocol/openid-connect/token
+          scopes:
+            support:ecriture: Ouverture et suivi de sollicitations.

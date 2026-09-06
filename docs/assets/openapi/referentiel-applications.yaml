@@ -1,0 +1,459 @@
+openapi: 3.0.3
+
+info:
+  title: Référentiel des applications
+  version: 1.72.0
+  summary: Cartographie du système d'information — applications, composants, dépendances.
+  description: |
+    L'API expose la cartographie du parc applicatif : les applications, leurs
+    responsables, les composants techniques sur lesquels elles reposent et les
+    dépendances qui les relient.
+
+    ## Authentification
+
+    Toutes les opérations exigent un jeton OAuth 2.0 obtenu par le flux
+    `client_credentials` auprès du fournisseur d'identité, présenté dans
+    l'en-tête `Authorization: Bearer <jeton>`. Les portées disponibles sont
+    `referentiel:lecture`, `referentiel:ecriture` et `referentiel:admin`.
+
+    ## Pagination
+
+    Les collections sont paginées. La réponse porte les clés `resultats` et
+    `total` ; les paramètres `page` (à partir de 0) et `taille` (100 au
+    maximum) contrôlent la fenêtre retournée.
+
+    ## Quotas
+
+    60 requêtes par minute et par client. Un dépassement renvoie un code 429
+    accompagné de l'en-tête `Retry-After`.
+  contact:
+    name: Équipe Référentiel des applications
+    email: referentiel-applications@exemple.gouv.fr
+    url: https://github.com/dnum-mi/referentiel-applications
+  license:
+    name: Licence Ouverte 2.0
+    url: https://www.etalab.gouv.fr/licence-ouverte-open-licence
+
+servers:
+  - url: https://referentiel-applications.exemple.gouv.fr/api/v1
+    description: Production
+  - url: https://referentiel-applications.recette.exemple.gouv.fr/api/v1
+    description: Recette — jeu de données anonymisé
+
+tags:
+  - name: Applications
+    description: Fiches applicatives et leur cycle de vie.
+  - name: Composants
+    description: Briques techniques et fins de support éditeur.
+  - name: Dépendances
+    description: Liens entre applications.
+  - name: Référentiels
+    description: Nomenclatures partagées.
+
+security:
+  - oauth2:
+      - referentiel:lecture
+
+paths:
+  /applications:
+    get:
+      tags: [Applications]
+      summary: Rechercher des applications
+      description: |
+        Retourne les applications correspondant aux critères. Sans critère, la
+        totalité du parc est renvoyée, page par page.
+      operationId: listerApplications
+      parameters:
+        - name: recherche
+          in: query
+          description: Recherche plein texte sur le nom, le code et la description.
+          schema: { type: string }
+          example: gestion des titres
+        - name: statut
+          in: query
+          schema:
+            $ref: "#/components/schemas/Statut"
+        - name: criticite
+          in: query
+          schema:
+            $ref: "#/components/schemas/Criticite"
+        - name: direction
+          in: query
+          description: Code de la direction porteuse.
+          schema: { type: string }
+          example: DNUM
+        - name: modifieDepuis
+          in: query
+          description: Ne retourne que les fiches modifiées depuis cette date.
+          schema: { type: string, format: date-time }
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Taille"
+      responses:
+        "200":
+          description: Liste paginée d'applications.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [resultats, total]
+                properties:
+                  resultats:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Application"
+                  total:
+                    type: integer
+                    example: 268
+        "401":
+          $ref: "#/components/responses/NonAuthentifie"
+        "429":
+          $ref: "#/components/responses/TropDeRequetes"
+    post:
+      tags: [Applications]
+      summary: Créer une application
+      operationId: creerApplication
+      security:
+        - oauth2: [referentiel:ecriture]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationEnEntree"
+      responses:
+        "201":
+          description: Application créée.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+        "400":
+          $ref: "#/components/responses/RequeteInvalide"
+        "403":
+          $ref: "#/components/responses/Interdit"
+
+  /applications/{identifiant}:
+    parameters:
+      - $ref: "#/components/parameters/Identifiant"
+    get:
+      tags: [Applications]
+      summary: Consulter une application
+      operationId: lireApplication
+      responses:
+        "200":
+          description: Fiche complète de l'application.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+        "404":
+          $ref: "#/components/responses/Introuvable"
+    patch:
+      tags: [Applications]
+      summary: Mettre à jour une application
+      operationId: majApplication
+      security:
+        - oauth2: [referentiel:ecriture]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationEnEntree"
+      responses:
+        "200":
+          description: Fiche mise à jour.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+        "403":
+          $ref: "#/components/responses/Interdit"
+        "404":
+          $ref: "#/components/responses/Introuvable"
+
+  /applications/{identifiant}/dependances:
+    parameters:
+      - $ref: "#/components/parameters/Identifiant"
+      - name: profondeur
+        in: query
+        description: Nombre de niveaux de dépendances remontés.
+        schema: { type: integer, minimum: 1, maximum: 3, default: 2 }
+    get:
+      tags: [Dépendances]
+      summary: Graphe des dépendances d'une application
+      operationId: lireDependances
+      responses:
+        "200":
+          description: Graphe orienté des dépendances.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  noeuds:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApplicationResumee"
+                  liens:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Dependance"
+        "404":
+          $ref: "#/components/responses/Introuvable"
+
+  /applications/{identifiant}/historique:
+    parameters:
+      - $ref: "#/components/parameters/Identifiant"
+    get:
+      tags: [Applications]
+      summary: Historique des modifications
+      description: Les vingt-quatre derniers mois de modifications de la fiche.
+      operationId: lireHistorique
+      responses:
+        "200":
+          description: Modifications horodatées.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Modification"
+
+  /composants:
+    get:
+      tags: [Composants]
+      summary: Rechercher des composants techniques
+      description: |
+        Recense les briques techniques déclarées et, lorsqu'elle est connue, la
+        date de fin de support éditeur. Le filtre `finSupportAvant` sert à
+        préparer les plans de remédiation.
+      operationId: listerComposants
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [langage, cadriciel, base-de-donnees, serveur, systeme]
+        - name: finSupportAvant
+          in: query
+          schema: { type: string, format: date }
+          example: "2027-01-01"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Taille"
+      responses:
+        "200":
+          description: Liste paginée de composants.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultats:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Composant"
+                  total: { type: integer }
+
+  /directions:
+    get:
+      tags: [Référentiels]
+      summary: Lister les directions porteuses
+      operationId: listerDirections
+      responses:
+        "200":
+          description: Nomenclature des directions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code: { type: string, example: DNUM }
+                    libelle: { type: string, example: Direction du numérique }
+
+components:
+  parameters:
+    Identifiant:
+      name: identifiant
+      in: path
+      required: true
+      description: Identifiant technique de l'application (UUID).
+      schema: { type: string, format: uuid }
+    Page:
+      name: page
+      in: query
+      description: Index de page, à partir de 0.
+      schema: { type: integer, minimum: 0, default: 0 }
+    Taille:
+      name: taille
+      in: query
+      description: Nombre d'éléments par page.
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  schemas:
+    Statut:
+      type: string
+      description: Position de l'application dans son cycle de vie.
+      enum: [construction, production, decommissionnement, decommissionnee]
+
+    Criticite:
+      type: string
+      description: Criticité métier, alignée sur la nomenclature de continuité d'activité.
+      enum: [vitale, majeure, courante]
+
+    ApplicationResumee:
+      type: object
+      properties:
+        identifiant: { type: string, format: uuid }
+        code: { type: string, example: REFAPP }
+        nom: { type: string, example: Référentiel des applications }
+
+    Application:
+      allOf:
+        - $ref: "#/components/schemas/ApplicationResumee"
+        - type: object
+          properties:
+            description:
+              type: string
+              example: Cartographie du parc applicatif du ministère.
+            direction: { type: string, example: DNUM }
+            statut:
+              $ref: "#/components/schemas/Statut"
+            criticite:
+              $ref: "#/components/schemas/Criticite"
+            miseEnService: { type: string, format: date, example: "2025-02-03" }
+            finDeViePrevue: { type: string, format: date, nullable: true }
+            responsables:
+              type: array
+              items:
+                $ref: "#/components/schemas/Responsable"
+            composants:
+              type: array
+              items:
+                $ref: "#/components/schemas/Composant"
+            homologation:
+              type: object
+              properties:
+                statut:
+                  type: string
+                  enum: [homologuee, en-cours, expiree, non-requise]
+                echeance: { type: string, format: date, nullable: true }
+            modifieLe: { type: string, format: date-time }
+
+    ApplicationEnEntree:
+      type: object
+      required: [code, nom, direction, statut]
+      properties:
+        code: { type: string, maxLength: 20 }
+        nom: { type: string, maxLength: 200 }
+        description: { type: string }
+        direction: { type: string }
+        statut:
+          $ref: "#/components/schemas/Statut"
+        criticite:
+          $ref: "#/components/schemas/Criticite"
+
+    Responsable:
+      type: object
+      description: |
+        Un rôle est porté par une structure de l'organigramme, jamais par une
+        personne : la fiche survit ainsi aux mobilités.
+      properties:
+        role:
+          type: string
+          enum: [proprietaire-metier, responsable-technique, hebergeur, support]
+        structure: { type: string, example: DNUM/Architecture }
+        courriel: { type: string, format: email }
+
+    Composant:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [langage, cadriciel, base-de-donnees, serveur, systeme]
+        nom: { type: string, example: PostgreSQL }
+        version: { type: string, example: "14" }
+        finSupport: { type: string, format: date, nullable: true, example: "2026-11-12" }
+        sourceFinSupport:
+          type: string
+          enum: [editeur, saisie-manuelle]
+
+    Dependance:
+      type: object
+      properties:
+        source: { type: string, format: uuid }
+        cible: { type: string, format: uuid }
+        nature:
+          type: string
+          enum: [appel-synchrone, echange-de-fichiers, replication]
+        criticite:
+          $ref: "#/components/schemas/Criticite"
+
+    Modification:
+      type: object
+      properties:
+        date: { type: string, format: date-time }
+        auteur: { type: string, example: DNUM/Architecture }
+        champ: { type: string, example: criticite }
+        avant: { type: string, nullable: true, example: majeure }
+        apres: { type: string, nullable: true, example: vitale }
+
+    Erreur:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: quota_depasse }
+        message:
+          type: string
+          example: Quota de 60 requêtes par minute dépassé.
+        detail: { type: string, nullable: true }
+
+  responses:
+    RequeteInvalide:
+      description: Requête invalide.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Erreur"
+    NonAuthentifie:
+      description: Jeton absent, expiré ou invalide.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Erreur"
+    Interdit:
+      description: Portée insuffisante pour cette opération.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Erreur"
+    Introuvable:
+      description: Ressource inexistante.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Erreur"
+    TropDeRequetes:
+      description: Quota dépassé.
+      headers:
+        Retry-After:
+          description: Délai d'attente conseillé, en secondes.
+          schema: { type: integer }
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Erreur"
+
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: Flux « client credentials » auprès du fournisseur d'identité de l'État.
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.exemple.gouv.fr/realms/agents/protocol/openid-connect/token
+          scopes:
+            referentiel:lecture: Consultation des applications, composants et dépendances.
+            referentiel:ecriture: Création et mise à jour des applications gérées par le client.
+            referentiel:admin: Administration du modèle de données.

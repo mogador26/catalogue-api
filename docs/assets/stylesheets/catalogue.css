@@ -1,0 +1,271 @@
+/* ---------------------------------------------------------------------------
+   Catalogue des API — styles complémentaires
+   Uniquement des variables du DSFR : le rendu suit automatiquement le thème
+   clair ou sombre choisi par la personne dans les paramètres d'affichage.
+   --------------------------------------------------------------------------- */
+
+/* Colonne de gauche : thèmes et filtres ----------------------------------- */
+
+.catalogue__colonne-filtres {
+  border-right: 1px solid var(--border-default-grey);
+}
+
+.catalogue__filtres {
+  position: sticky;
+  top: 1rem;
+  padding-right: 1rem;
+}
+
+.catalogue__groupe {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--border-default-grey);
+}
+
+.catalogue__groupe .fr-fieldset__legend {
+  padding: 1rem 0 0.5rem;
+  color: var(--text-title-grey);
+}
+
+.catalogue__groupe .fr-fieldset__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.catalogue__groupe .fr-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.catalogue__icone {
+  color: var(--text-mention-grey);
+}
+
+.catalogue__pastille {
+  margin-left: auto;
+  padding: 0 0.5rem;
+  border-radius: 1rem;
+  background-color: var(--background-contrast-grey);
+  color: var(--text-mention-grey);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.catalogue__groupe input:checked + .fr-label .catalogue__pastille {
+  background-color: var(--background-action-low-blue-france);
+  color: var(--text-action-high-blue-france);
+}
+
+#catalogue-reinitialiser {
+  margin-top: 1.5rem;
+}
+
+/* Barre de résultats ------------------------------------------------------ */
+
+.catalogue__barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-default-grey);
+  margin-bottom: 1.5rem;
+}
+
+.catalogue__resultats {
+  margin: 0;
+  color: var(--text-mention-grey);
+}
+
+.catalogue__actifs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.catalogue__actif {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--border-action-high-blue-france);
+  border-radius: 1rem;
+  background: none;
+  color: var(--text-action-high-blue-france);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.catalogue__actif:hover {
+  background-color: var(--background-action-low-blue-france);
+}
+
+/* Tuiles ------------------------------------------------------------------ */
+
+.catalogue__item {
+  display: flex;
+}
+
+.catalogue__tuile {
+  width: 100%;
+}
+
+.catalogue__tuile .fr-tile__desc {
+  color: var(--text-mention-grey);
+}
+
+.catalogue__item[hidden] {
+  display: none;
+}
+
+/* Compteurs --------------------------------------------------------------- */
+
+.catalogue__compteurs {
+  margin-bottom: 2rem;
+}
+
+.catalogue__compteur {
+  height: 100%;
+  padding: 1.25rem;
+  border-left: 4px solid var(--border-plain-blue-france);
+  background-color: var(--background-alt-grey);
+}
+
+.catalogue__compteur-valeur {
+  margin: 0;
+  color: var(--text-title-blue-france);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.catalogue__compteur-libelle {
+  margin: 0.25rem 0 0;
+  font-weight: 700;
+}
+
+.catalogue__compteur-detail {
+  margin: 0.25rem 0 0;
+  color: var(--text-mention-grey);
+}
+
+/* Fiche API : bloc d'identité --------------------------------------------- */
+
+.fiche__entete {
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+  background-color: var(--background-alt-grey);
+}
+
+.fiche__meta {
+  margin: 1rem 0 0;
+}
+
+.fiche__ligne {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border-default-grey);
+}
+
+.fiche__ligne dt {
+  flex: 0 0 12rem;
+  font-weight: 700;
+}
+
+.fiche__ligne dd {
+  flex: 1 1 16rem;
+  margin: 0;
+  color: var(--text-mention-grey);
+}
+
+/* Documentation Redoc ----------------------------------------------------- */
+
+.redoc__sources {
+  margin-bottom: 0.5rem;
+}
+
+.redoc__sources .fr-fieldset__content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 2rem;
+}
+
+.redoc__conteneur:not(:empty) {
+  margin-top: 1rem;
+  min-height: 12rem;
+  border: 1px solid var(--border-default-grey);
+  background-color: var(--background-default-grey);
+}
+
+/* Redoc injecte sa propre feuille de style : on se limite à contenir les
+   débordements horizontaux sur petit écran. */
+.redoc__conteneur redoc {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.redoc__conteneur .redoc-wrap {
+  font-family: inherit;
+}
+
+.redoc__erreur {
+  padding: 1.5rem;
+}
+
+@media (max-width: 62em) {
+  .catalogue__colonne-filtres {
+    border-right: 0;
+    border-bottom: 1px solid var(--border-default-grey);
+    padding-bottom: 1.5rem;
+  }
+
+  .catalogue__filtres {
+    position: static;
+    padding-right: 0;
+  }
+}
+
+@media print {
+  .catalogue__colonne-filtres,
+  .redoc__sources,
+  .fr-btns-group {
+    display: none;
+  }
+}
+
+/* --- Ajustements de lisibilité -------------------------------------------- */
+
+/* Les ancres de titre restent atteignables au clavier, mais ne s'affichent
+   qu'au survol ou au focus : le pied-de-mouche permanent parasite la lecture. */
+.markdown-content .headerlink {
+  opacity: 0;
+  margin-left: 0.25rem;
+  text-decoration: none;
+}
+
+.markdown-content :hover > .headerlink,
+.markdown-content .headerlink:focus {
+  opacity: 1;
+}
+
+/* Les tuiles du catalogue sont alignées à gauche : la description est un
+   paragraphe, elle se lit mieux au fil du texte que centrée. */
+.catalogue__tuile .fr-tile__content,
+.catalogue__tuile .fr-tile__title,
+.catalogue__tuile .fr-tile__desc,
+.catalogue__tuile .fr-tile__detail,
+.catalogue__tuile .fr-tile__start {
+  text-align: left;
+}
+
+.catalogue__tuile .fr-tile__detail {
+  color: var(--text-mention-grey);
+}

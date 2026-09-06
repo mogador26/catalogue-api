@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: Notifications transactionnelles
+  version: 2.0.3
+  description: |
+    Envoi de courriels et de SMS transactionnels pour le compte des
+    applications du ministère : accusés de réception, notifications de décision,
+    codes à usage unique.
+
+    Service mutualisé : les applications n'ont plus à gérer leur propre
+    infrastructure d'envoi, ni la réputation des domaines expéditeurs. L'accès
+    se fait par clé d'API, une clé par application et par environnement.
+  contact:
+    name: Socle applicatif — équipe notifications
+    email: api-notifications@exemple.gouv.fr
+servers:
+  - url: https://notifications.exemple.gouv.fr/api/v2
+security:
+  - cleApi: []
+tags:
+  - name: Envois
+paths:
+  /envois:
+    post:
+      tags: [Envois]
+      summary: Déclencher un envoi
+      description: |
+        L'envoi est asynchrone : la réponse confirme la prise en compte, pas la
+        remise. L'état final se consulte sur `/envois/{identifiant}` ou par
+        rappel HTTP si une URL de retour est déclarée.
+      operationId: creerEnvoi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnvoiEnEntree"
+      responses:
+        "202":
+          description: Envoi accepté et mis en file.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envoi"
+        "400": { description: Gabarit inconnu ou variables manquantes. }
+        "429": { description: Quota de l'application dépassé. }
+  /envois/{identifiant}:
+    get:
+      tags: [Envois]
+      summary: Suivre un envoi
+      operationId: lireEnvoi
+      parameters:
+        - name: identifiant
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: État de l'envoi.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envoi"
+  /gabarits:
+    get:
+      tags: [Envois]
+      summary: Lister les gabarits de l'application
+      operationId: listerGabarits
+      responses:
+        "200":
+          description: Gabarits disponibles et variables attendues.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code: { type: string, example: accuse-reception }
+                    canal: { type: string, enum: [courriel, sms] }
+                    variables:
+                      type: array
+                      items: { type: string }
+components:
+  schemas:
+    Envoi:
+      type: object
+      properties:
+        identifiant: { type: string, format: uuid }
+        canal: { type: string, enum: [courriel, sms] }
+        statut:
+          type: string
+          enum: [en-file, envoye, remis, echec]
+        creeLe: { type: string, format: date-time }
+        remisLe: { type: string, format: date-time, nullable: true }
+        motifEchec: { type: string, nullable: true }
+    EnvoiEnEntree:
+      type: object
+      required: [gabarit, destinataire]
+      properties:
+        gabarit: { type: string, example: accuse-reception }
+        destinataire:
+          type: string
+          description: Adresse de courriel ou numéro de téléphone, selon le canal du gabarit.
+        variables:
+          type: object
+          additionalProperties: { type: string }
+          example:
+            numeroDossier: SUB-2026-004512
+            dateDepot: "2026-09-01"
+        urlRetour:
+          type: string
+          format: uri
+          nullable: true
+          description: Adresse appelée à chaque changement d'état de l'envoi.
+  securitySchemes:
+    cleApi:
+      type: apiKey
+      in: header
+      name: X-API-Key

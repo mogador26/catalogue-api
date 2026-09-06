@@ -1,0 +1,92 @@
+openapi: 3.0.3
+info:
+  title: Répertoire national des associations
+  version: 1.9.0
+  description: |
+    Recherche et consultation des associations déclarées en préfecture :
+    identité, objet statutaire, siège, dates de déclaration et de dissolution.
+
+    API ouverte : aucune inscription, aucun jeton. Les données diffusées sont
+    celles publiées au Journal officiel des associations.
+  contact:
+    name: Bureau des associations
+    email: api-associations@exemple.gouv.fr
+  license:
+    name: Licence Ouverte 2.0
+    url: https://www.etalab.gouv.fr/licence-ouverte-open-licence
+servers:
+  - url: https://associations.exemple.gouv.fr/api/v1
+tags:
+  - name: Associations
+paths:
+  /associations:
+    get:
+      tags: [Associations]
+      summary: Rechercher une association
+      operationId: rechercherAssociations
+      parameters:
+        - name: q
+          in: query
+          description: Recherche plein texte sur le titre et l'objet.
+          schema: { type: string }
+          example: club de plongée
+        - name: departement
+          in: query
+          schema: { type: string, example: "01" }
+        - name: active
+          in: query
+          description: Exclut les associations dissoutes lorsque la valeur est vraie.
+          schema: { type: boolean, default: true }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+      responses:
+        "200":
+          description: Associations correspondantes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultats:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Association"
+                  total: { type: integer, example: 142 }
+  /associations/{rna}:
+    get:
+      tags: [Associations]
+      summary: Consulter une association
+      operationId: lireAssociation
+      parameters:
+        - name: rna
+          in: path
+          required: true
+          description: Numéro d'inscription au répertoire national.
+          schema: { type: string, pattern: "^W[0-9]{9}$" }
+          example: W011002345
+      responses:
+        "200":
+          description: Fiche de l'association.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Association"
+        "404": { description: Numéro RNA inconnu. }
+components:
+  schemas:
+    Association:
+      type: object
+      properties:
+        rna: { type: string, example: W011002345 }
+        titre: { type: string, example: Club de plongée du Bugey }
+        objet: { type: string }
+        siege:
+          type: object
+          properties:
+            commune: { type: string, example: Hauteville-Lompnes }
+            codePostal: { type: string, example: "01110" }
+            departement: { type: string, example: "01" }
+        dateDeclaration: { type: string, format: date }
+        dateDissolution: { type: string, format: date, nullable: true }
+        siret: { type: string, nullable: true }

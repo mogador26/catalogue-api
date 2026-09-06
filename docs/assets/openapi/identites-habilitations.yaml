@@ -1,0 +1,108 @@
+openapi: 3.0.3
+info:
+  title: Identités et habilitations
+  version: 5.1.0
+  description: |
+    Annuaire des agents et de leurs habilitations applicatives : identité
+    professionnelle, affectation, rôles détenus sur une application donnée.
+
+    API la plus sensible du catalogue : l'authentification se fait par
+    certificat client (mTLS) délivré par l'autorité de certification interne, en
+    complément d'un filtrage par adresse IP. Aucune donnée n'est servie hors du
+    réseau interministériel.
+  contact:
+    name: Direction du numérique — pôle identités
+    email: api-identites@exemple.gouv.fr
+servers:
+  - url: https://identites.interne.exemple.gouv.fr/api/v5
+security:
+  - mtls: []
+tags:
+  - name: Agents
+  - name: Habilitations
+paths:
+  /agents/{identifiant}:
+    get:
+      tags: [Agents]
+      summary: Consulter un agent
+      operationId: lireAgent
+      parameters:
+        - name: identifiant
+          in: path
+          required: true
+          description: Identifiant annuaire de l'agent.
+          schema: { type: string }
+      responses:
+        "200":
+          description: Identité professionnelle de l'agent.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "404": { description: Agent inconnu ou hors périmètre du certificat. }
+  /agents/{identifiant}/habilitations:
+    get:
+      tags: [Habilitations]
+      summary: Habilitations d'un agent
+      operationId: listerHabilitationsAgent
+      parameters:
+        - name: identifiant
+          in: path
+          required: true
+          schema: { type: string }
+        - name: application
+          in: query
+          description: Restreint la réponse à une application.
+          schema: { type: string, example: REFAPP }
+      responses:
+        "200":
+          description: Habilitations en cours de validité.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Habilitation"
+  /structures/{code}/agents:
+    get:
+      tags: [Agents]
+      summary: Agents affectés à une structure
+      operationId: listerAgentsStructure
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string, example: DNUM/ARCHI }
+      responses:
+        "200":
+          description: Agents de la structure.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
+components:
+  schemas:
+    Agent:
+      type: object
+      properties:
+        identifiant: { type: string }
+        nom: { type: string }
+        prenom: { type: string }
+        courrielProfessionnel: { type: string, format: email }
+        structure: { type: string, example: DNUM/ARCHI }
+        statut:
+          type: string
+          enum: [actif, suspendu, parti]
+    Habilitation:
+      type: object
+      properties:
+        application: { type: string, example: REFAPP }
+        role: { type: string, example: administrateur }
+        accordeeLe: { type: string, format: date }
+        echeance: { type: string, format: date, nullable: true }
+  securitySchemes:
+    mtls:
+      type: mutualTLS
+      description: Certificat client délivré par l'autorité de certification interne.
