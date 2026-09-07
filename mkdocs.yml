@@ -13,7 +13,7 @@ site_url: https://catalogue-api.exemple.gouv.fr/
 site_author: Direction du numérique
 copyright: Direction du numérique - Licence Ouverte 2.0
 
-repo_url: https://github.com/dnum-mi/referentiel-applications
+repo_url: https://github.com/mogador26/catalogue-api
 edit_uri: blob/main/docs/
 
 docs_dir: docs
@@ -53,7 +53,7 @@ theme:
         url: "publier-une-api/"
         icon: "add-circle-line"
       - name: "Code source"
-        url: "https://github.com/dnum-mi/referentiel-applications"
+        url: "https://github.com/mogador26/catalogue-api"
         icon: "github-fill"
 
   footer:
@@ -151,7 +151,4 @@ nav:
       - Identités et habilitations: apis/identites-habilitations.md
       - Référentiel géographique: apis/referentiel-geographique.md
   - Publier une API: publier-une-api.md
-  - Mots-clés: tags_index.md
-  - Accessibilité: accessibilite.md
-  - Mentions légales: mentions-legales.md
-  - Données personnelles: donnees-personnelles.md
+  - Mots-clés: tags_index.md  
