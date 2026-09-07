@@ -73,7 +73,7 @@ theme:
       - name: data.gouv.fr
         url: https://www.data.gouv.fr
       - name: api.gouv.fr
-        url: https://api.gouv.fr
+        url: https://www.data.gouv.fr/dataservices
     # Liens de bas de page à gauche : mention d'accessibilité en premier.
     bottom_links:
       - name: "Accessibilité : partiellement conforme"
@@ -140,15 +140,15 @@ nav:
   - Catalogue: index.md
   - Feuille de route: feuille-de-route.md
   - API:
-      - Référentiel des applications: apis/referentiel-applications.md
-      - Immatriculation des véhicules: apis/immatriculation-vehicules.md
-      - Détention d'armes (SIA): apis/detention-armes.md
-      - Répertoire national des associations: apis/repertoire-associations.md
-      - Entreprises et établissements: apis/entreprises-etablissements.md
-      - Subventions et concours financiers: apis/subventions.md
-      - Sollicitations de support: apis/support-sollicitations.md
-      - Notifications transactionnelles: apis/notifications.md
-      - Identités et habilitations: apis/identites-habilitations.md
-      - Référentiel géographique: apis/referentiel-geographique.md
+      - Référentiel des applications: ./apis/referentiel-applications.md
+      - Immatriculation des véhicules: ./apis/immatriculation-vehicules.md
+      - Détention d'armes (SIA): ./apis/detention-armes.md
+      - Répertoire national des associations: ./apis/repertoire-associations.md
+      - Entreprises et établissements: ./apis/entreprises-etablissements.md
+      - Subventions et concours financiers: ./apis/subventions.md
+      - Sollicitations de support: ./apis/support-sollicitations.md
+      - Notifications transactionnelles: ./apis/notifications.md
+      - Identités et habilitations: ./apis/identites-habilitations.md
+      - Référentiel géographique: ./apis/referentiel-geographique.md
   - Publier une API: publier-une-api.md
   - Mots-clés: tags_index.md  
