@@ -27,36 +27,13 @@ catalogue.
 Chaque fiche suit le même plan, pour que la comparaison entre API reste
 immédiate :
 
-Description fonctionnelle
-:   Ce que l'API expose, sur quel périmètre, avec quelle fraîcheur de données.
-
-Cas d'usage identifiés
-:   Les usages déjà en production, nommés avec leur porteur. Un cas d'usage sans
-    utilisateur réel n'est pas un cas d'usage.
-
-Proposition de valeur
-:   La lecture « bizdev » : le problème résolu, le gain mesuré, les alternatives
-    écartées.
-
-Modalités d'accès
-:   API ouverte, clé d'API, OAuth 2.0 ou mTLS, avec la procédure d'habilitation
-    et les quotas applicables.
-
-Documentation OpenAPI
-:   La spécification affichée avec Redoc, téléchargeable au format YAML ou JSON.
-
-Évolutions du produit
-:   L'historique des versions et ce qui est prévu ensuite.
-
-Contact du producteur
-:   L'équipe responsable, son canal de support et son engagement de réponse.
-
-## Prochaines API
-
-Quatre jalons à venir. La [feuille de route complète](feuille-de-route.md)
-détaille l'ensemble des travaux engagés.
-
-[[FEUILLE_DE_ROUTE_EXTRAIT]]
+- Description fonctionnelle:   Ce que l'API expose, sur quel périmètre, avec quelle fraîcheur de données.
+- Cas d'usage identifiés: Les usages déjà en production, nommés avec leur porteur. Un cas d'usage sans utilisateur réel n'est pas un cas d'usage.
+- Proposition de valeur: La lecture « bizdev » : le problème résolu, le gain mesuré, les alternatives écartées.
+- Modalités d'accès: API ouverte, clé d'API, OAuth 2.0 ou mTLS, avec la procédure d'habilitation et les quotas applicables.
+- Documentation OpenAPI: La spécification affichée avec Redoc, téléchargeable au format YAML ou JSON.
+- Évolutions du produit: L'historique des versions et ce qui est prévu ensuite.
+- Contact du producteur: L'équipe responsable, son canal de support et son engagement de réponse.
 
 ## Réutiliser le catalogue
 
