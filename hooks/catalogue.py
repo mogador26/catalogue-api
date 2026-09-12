@@ -181,7 +181,7 @@ def _lire_fiches(docs_dir: Path) -> list[dict[str, Any]]:
                 "openapi_url": meta.get("openapi_url", ""),
                 "base_url": meta.get("base_url", ""),
                 "tags": meta.get("tags", []) or [],
-                "url": f"/apis/{chemin.stem}/",
+                "url": f"./apis/{chemin.stem}/",
             }
         )
     return fiches
