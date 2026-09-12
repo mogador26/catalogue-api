@@ -118,7 +118,7 @@ def _slug(valeur: str) -> str:
 
 def _prefixe(page) -> str:
     """Chemin relatif de la page courante vers la racine du site."""
-    return "../" * page.file.url.count("/")
+    return "/" * page.file.url.count("/")
 
 
 def _est_url(valeur: str) -> bool:
@@ -181,7 +181,7 @@ def _lire_fiches(docs_dir: Path) -> list[dict[str, Any]]:
                 "openapi_url": meta.get("openapi_url", ""),
                 "base_url": meta.get("base_url", ""),
                 "tags": meta.get("tags", []) or [],
-                "url": f"./apis/{chemin.stem}/",
+                "url": f"/apis/{chemin.stem}/",
             }
         )
     return fiches
